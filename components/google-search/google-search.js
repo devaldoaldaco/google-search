@@ -1,4 +1,8 @@
 import {LitElement, html} from 'lit';
+import {ifDefined} from 'lit/directives/if-defined.js';
+
+import ModalComponent from '../modal-component/modal-component.js';
+customElements.define('modal-component', ModalComponent);
 
 export default class GoogleSearch extends LitElement {
     constructor() {
@@ -6,6 +10,7 @@ export default class GoogleSearch extends LitElement {
         this._listToSearch = ['aldo', 'edgar', 'gloria', 'marco'];
         this.text = 'Google';
         this.stringToSearch = '';
+        this.shouldOpenModal = false;
     }
 
     static properties = { // LIT ELEMENT 3
@@ -18,6 +23,9 @@ export default class GoogleSearch extends LitElement {
         },
         stringToSearch: {
             type: String
+        },
+        shouldOpenModal: {
+            type: Boolean
         }
     };
 
@@ -30,10 +38,10 @@ export default class GoogleSearch extends LitElement {
 
     async someoneIsWriting() {
         await this.updateComplete;
-        const input = this.shadowRoot.getElementById('searchInput');
-        input.addEventListener('input', ({data}) => {
+        this.input = this.shadowRoot.getElementById('searchInput');
+        this.input.addEventListener('input', ({data}) => {
             this.stringToSearch += data;
-        });
+        }); // imperativa
     }
 
     isTheStringInArray() {
@@ -45,6 +53,21 @@ export default class GoogleSearch extends LitElement {
 
     firstUpdated() {
         this.someoneIsWriting();
+        this.shadowRoot.getElementById('searchButton').addEventListener('click', () => {
+            this.shouldOpenModal = true;
+            this.dataForModal = this.stringToSearch;
+        });
+    }
+
+    closeModal(ev) {
+        this.shouldOpenModal = ev.detail; // false
+        this.cleanData();
+    }
+
+    cleanData() {
+        this.stringToSearch = '';
+        this.dataForModal = '';
+        this.input.value  = '';
     }
 
     render() {
@@ -58,6 +81,9 @@ export default class GoogleSearch extends LitElement {
                     display: block;
                     height: 100vh;
                     background-color: #3C3C3C;
+                    position: relative;
+                    top: 0;
+                    left: 0;
                 }
                 h1 {
                     color: white;
@@ -131,6 +157,10 @@ export default class GoogleSearch extends LitElement {
                     display: grid;
                     grid-template-columns: repeat(5, 1fr);
                 }
+
+                modal-component[open] {
+                    display: block;
+                }
             </style>
             <header>
                 <a href="gmail.com">Gmail</a>
@@ -141,9 +171,8 @@ export default class GoogleSearch extends LitElement {
             </header>
             <main>
                 <h1>${this.text}</h1>
-                <otro-componente .array="${this._listToSearch}" ?isBoy="${this.sex}"></otro-componente>
                 <div id="search">
-                    <button class="button">
+                    <button class="button" id="searchButton">
                         <img src="../../assets/icon-search.svg"/>
                     </button>
                     <input id="searchInput" placeholder="Search google or type a URL" type="text"/>
@@ -154,80 +183,17 @@ export default class GoogleSearch extends LitElement {
                         <img src="../../assets/icon-camera.svg"/>
                     </button>
                 </div>
-
-                <section id="buttons">
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                    <button class="box">
-                        <div>
-                            <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="">
-                            <span>Youtube</span>
-                        </div>
-                    </button>
-                </section>
             </main>
-            
+            <modal-component @close-modal="${this.closeModal}" datos="${ifDefined(this.dataForModal)}" ?open="${this.shouldOpenModal}"></modal-component>
         `;
     }
 }
 
 /*
-    NOTA:
-     Lit element asigna un nombre de atributo a cada propiedad del componente web, por defecto 
-     Lit pone el nombre del atributo usando el nombre de la propiedad y convirtiendolo a lowercase(minusculas) 
-    */
+NOTA:
+    Lit element asigna un nombre de atributo a cada propiedad del componente web, por defecto 
+    Lit pone el nombre del atributo usando el nombre de la propiedad y convirtiendolo a lowercase(minusculas) 
+*/
 
 /*
 4 apis estandares que usamos para construir un componente web
